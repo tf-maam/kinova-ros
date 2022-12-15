@@ -93,7 +93,7 @@ This configuration will move the actual robot, so be careful before you execute 
 
 ### With Gazebo and ros_control
 
-This is explained in the Gazebo wiki [here] (https://github.com/Kinovarobotics/kinova-ros/wiki/Gazebo) 
+This is explained in the [Gazebo page](../kinova_gazebo)
 
 ## RViz MoveIt Plugin
 
@@ -167,6 +167,6 @@ The recommended kinematics plugin to use is **Trac_IK** with parameter solve typ
 
 
 ## Report a Bug
-Any bugs, issues or suggestions may be sent to ros@kinovarobotics.com.
+Any bugs, issues or suggestions may be sent to support@kinova.ca.
 
 
