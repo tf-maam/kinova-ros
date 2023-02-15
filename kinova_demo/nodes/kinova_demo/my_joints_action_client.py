@@ -11,6 +11,8 @@ import math
 import actionlib
 import kinova_msgs.msg
 
+
+
 import argparse
 
 
@@ -19,6 +21,13 @@ import numpy as np
 import pandas as pd
 
 from datetime import datetime
+
+import time
+
+# Kinova bringup command
+# PJ00900006537946-1
+# roslaunch kinova_bringup kinova_robot.launch kinova_robotType:=j2s7s300 kinova_robotSerial:=PJ00900006537946-1
+# rosrun kinova_demo my_joints_action_client.py -v -r j2s7s300 degree -- 0 0 0 0 0 0 0
 
 
 """ Global variable """
@@ -104,8 +113,8 @@ def setcurrentJointCommand(feedback):
     now = rospy.get_rostime()
     #rospy.loginfo("Current time %i %i", now.secs, now.nsecs)
 
-    print('currentJointCommand is: ')
-    print(currentJointCommand, 'at ', now.nsecs, 'nanosecs')
+    #print('currentJointCommand is: ')
+    #print(currentJointCommand, 'at ', now.nsecs, 'nanosecs')
     
     joint_command_history.append([now.nsecs] + currentJointCommand)
 
@@ -204,7 +213,7 @@ def apply_joint_degrees(joint_degree):
         return result
 
 def homing():
-    joint_degree_homing = [102.1, 197.3, 180.8, 43.6, 265.3, 257.1]
+    joint_degree_homing = [102.1, 197.3, 180.8, 43.6, 265.3, 257.1, 0.0]
     apply_joint_degrees(joint_degree_homing)
 
 if __name__ == '__main__':
@@ -237,7 +246,10 @@ if __name__ == '__main__':
             apply_joint_degrees(position)
 
         """
-        homing()
+        do_not_move = True
+        
+        if not do_not_move:
+            homing()
         # Reset History to start the recording at homing
         joint_command_history = []
         # get Current finger position if relative position
@@ -247,18 +259,23 @@ if __name__ == '__main__':
         repititions = 100
         print(currentJointCommand)
         
-        joints = 6
-        trajectory = np.linspace(currentJointCommand[:joints + 1], joint_target_degree + [20], repititions)
+        joints = 7
+        trajectory = np.linspace(currentJointCommand[:joints], joint_target_degree, repititions)
         
         sin_amplitude = 20 # in degree
         sin_trajectory = np.linspace(currentJointCommand[:joints], joint_target_degree, repititions) \
         + sin_amplitude * np.array([np.sin(x) for x in np.linspace([0]*joints, [2*np.pi]*joints, repititions)])
         
-        for position in sin_trajectory:
-            apply_joint_degrees(position)
+        
+        if not do_not_move:
+            for position in sin_trajectory:
+                apply_joint_degrees(position)
 
         #verboseParser(args.verbose, joint_degree)
-  
+        
+        print(joint_command_history[-1])
+        
+        time.sleep(100)
     
         now = datetime.now()
         # dd/mm/YY H:M:S
@@ -266,3 +283,5 @@ if __name__ == '__main__':
         csv_file = dt_string + '.csv'
         pd.DataFrame(data=joint_command_history, 
                      columns=['Timestamp [ns]'] + [f'Joint {i}' for i in range(7)]).to_csv(csv_file)
+        
+        print("Written to ", csv_file)
